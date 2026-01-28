@@ -6,7 +6,7 @@
     <title>Faculty Leaderboard</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Lucide Icons --> 
+    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet">
@@ -33,9 +33,9 @@
                 <h1 id="app-title" class="text-3xl md:text-4xl font-black tracking-tight mb-2">Faculty Bookings Leaderboard</h1>
                 <p id="app-subtitle" class="text-indigo-200 font-medium">Top performing faculties by bookings</p>
             </div>
-            <!-- <button onclick="toggleEditor()" id="edit-btn" class="mt-4 md:mt-0 flex items-center gap-2 bg-indigo-800 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors text-sm font-semibold border border-indigo-700">
+            <button onclick="toggleEditor()" id="edit-btn" class="mt-4 md:mt-0 flex items-center gap-2 bg-indigo-800 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors text-sm font-semibold border border-indigo-700">
                 <i data-lucide="edit-2" class="w-4 h-4"></i> <span id="edit-btn-text">Edit Data</span>
-            </button> -->
+            </button>
         </div>
     </header>
 
@@ -102,14 +102,14 @@
     </main>
 
     <footer class="text-center text-slate-400 text-sm mt-12 pb-8">
-       
+        Generated for Faculty Heads • <span id="date-footer"></span>
     </footer>
 
     <!-- Application Logic -->
     <script>
         // State
         let state = {
-            title: "Faculty Bookings Leaderboard",
+            title: "Imaginarium Bookings Leaderboard",
             metric: "Bookings",
             isEditing: false,
             data: [
@@ -337,10 +337,4 @@
 
     </script>
 </body>
-
 </html>
-
-
-
-
-
