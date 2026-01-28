@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Faculty Leaderboard</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        /* Custom animations */
+        @keyframes bounce-slow {
+            0%, 100% { transform: translateY(-5%); }
+            50% { transform: translateY(0); }
+        }
+        .animate-bounce-slow {
+            animation: bounce-slow 2s infinite;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-800 pb-20 selection:bg-indigo-100">
+
+    <!-- Header -->
+    <header class="bg-indigo-900 text-white p-6 shadow-xl relative overflow-hidden">
+        <div class="absolute top-0 right-0 p-12 bg-white/5 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
+        <div class="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center relative z-10">
+            <div>
+                <h1 id="app-title" class="text-3xl md:text-4xl font-black tracking-tight mb-2">Faculty Bookings Leaderboard</h1>
+                <p id="app-subtitle" class="text-indigo-200 font-medium">Top performing faculties by bookings</p>
+            </div>
+            <button onclick="toggleEditor()" id="edit-btn" class="mt-4 md:mt-0 flex items-center gap-2 bg-indigo-800 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors text-sm font-semibold border border-indigo-700">
+                <i data-lucide="edit-2" class="w-4 h-4"></i> <span id="edit-btn-text">Edit Data</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 -mt-8 relative z-20">
+
+        <!-- Editor Panel (Hidden by default) -->
+        <div id="editor-panel" class="hidden bg-white rounded-xl shadow-2xl border border-indigo-100 overflow-hidden mb-8 transition-all duration-300">
+            <div class="p-6 bg-slate-50 border-b border-slate-200">
+                <h2 class="text-lg font-bold text-slate-700 flex items-center gap-2">
+                    <i data-lucide="settings" class="w-4 h-4"></i> Configuration
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Title</label>
+                        <input type="text" id="input-title" oninput="updateSettings()" class="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-indigo-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Metric Label</label>
+                        <input type="text" id="input-metric" oninput="updateSettings()" class="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-indigo-500 outline-none">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="p-4 max-h-96 overflow-y-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="text-left text-slate-500 border-b border-slate-200">
+                            <th class="p-2">Faculty Name</th>
+                            <th class="p-2 text-right">Count</th>
+                            <th class="p-2 w-10"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="editor-table-body">
+                        <!-- Editor rows injected here -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-center">
+                <button onclick="addData()" class="flex items-center gap-2 text-indigo-600 font-bold hover:bg-indigo-50 px-4 py-2 rounded transition-colors">
+                    <i data-lucide="plus" class="w-4 h-4"></i> Add New Entry
+                </button>
+            </div>
+        </div>
+
+        <!-- Podium Section -->
+        <div id="podium-container" class="flex justify-center items-end mb-12 space-x-2 md:space-x-8 px-2 pt-8 min-h-[450px]">
+            <!-- Podium items injected here -->
+        </div>
+
+        <!-- List Section -->
+        <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8 border border-slate-100">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                    <i data-lucide="bar-chart-2" class="text-indigo-500 w-5 h-5"></i> Full Rankings
+                </h3>
+                <span id="total-count" class="text-sm font-medium text-slate-400">0 Faculties</span>
+            </div>
+            
+            <div id="list-container" class="space-y-1">
+                <!-- List items injected here -->
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="text-center text-slate-400 text-sm mt-12 pb-8">
+        Generated for Faculty Heads • <span id="date-footer"></span>
+    </footer>
+
+    <!-- Application Logic -->
+    <script>
+        // State
+        let state = {
+            title: "Faculty Bookings Leaderboard",
+            metric: "Bookings",
+            isEditing: false,
+            data: [
+                { id: '1', label: 'CUCP', value: 19 },
+                { id: '2', label: 'CUCB', value: 14 },
+                { id: '3', label: 'CUDS', value: 13 },
+                { id: '4', label: 'CURC', value: 10 },
+                { id: '5', label: 'CUSE', value: 10 },
+                { id: '6', label: 'CUEN', value: 7 },
+                { id: '7', label: 'CUST', value: 7 },
+                { id: '8', label: 'CUDC', value: 3 },
+                { id: '9', label: 'CUMT', value: 3 },
+                { id: '10', label: 'CUFP', value: 2 },
+                { id: '11', label: 'CUTL', value: 2 },
+                { id: '12', label: 'CUPA', value: 1 },
+            ]
+        };
+
+        // --- Core Functions ---
+
+        function init() {
+            document.getElementById('date-footer').textContent = `Last Updated ${new Date().toLocaleDateString()}`;
+            document.getElementById('input-title').value = state.title;
+            document.getElementById('input-metric').value = state.metric;
+            render();
+        }
+
+        function toggleEditor() {
+            state.isEditing = !state.isEditing;
+            const panel = document.getElementById('editor-panel');
+            const btnText = document.getElementById('edit-btn-text');
+            
+            if (state.isEditing) {
+                panel.classList.remove('hidden');
+                btnText.textContent = "Close Editor";
+            } else {
+                panel.classList.add('hidden');
+                btnText.textContent = "Edit Data";
+            }
+        }
+
+        function updateSettings() {
+            state.title = document.getElementById('input-title').value;
+            state.metric = document.getElementById('input-metric').value;
+            renderHeader();
+            renderPodium(); // Re-render podium to update metric label bubbles
+        }
+
+        function updateData(id, field, value) {
+            const index = state.data.findIndex(item => item.id === id);
+            if (index !== -1) {
+                if (field === 'value') {
+                    state.data[index][field] = Number(value);
+                } else {
+                    state.data[index][field] = value;
+                }
+                render();
+            }
+        }
+
+        function deleteData(id) {
+            state.data = state.data.filter(item => item.id !== id);
+            render();
+        }
+
+        function addData() {
+            const newId = Math.random().toString(36).substr(2, 9);
+            state.data.push({ id: newId, label: 'NEW', value: 0 });
+            render();
+        }
+
+        // --- Rendering ---
+
+        function render() {
+            // Sort data descending
+            state.data.sort((a, b) => b.value - a.value);
+
+            renderHeader();
+            renderEditorTable();
+            renderPodium();
+            renderList();
+            
+            // Re-initialize icons
+            lucide.createIcons();
+        }
+
+        function renderHeader() {
+            document.getElementById('app-title').textContent = state.title;
+            document.getElementById('app-subtitle').textContent = `Top performing faculties by ${state.metric.toLowerCase()}`;
+        }
+
+        function renderEditorTable() {
+            const tbody = document.getElementById('editor-table-body');
+            tbody.innerHTML = '';
+
+            state.data.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = "border-b border-slate-100 hover:bg-slate-50";
+                tr.innerHTML = `
+                    <td class="p-2">
+                        <input type="text" value="${item.label}" 
+                            oninput="updateData('${item.id}', 'label', this.value)"
+                            class="w-full bg-transparent border-none focus:ring-0 font-medium text-slate-700 outline-none">
+                    </td>
+                    <td class="p-2 text-right">
+                        <input type="number" value="${item.value}" 
+                            oninput="updateData('${item.id}', 'value', this.value)"
+                            class="w-20 text-right bg-transparent border-none focus:ring-0 font-mono text-slate-700 outline-none">
+                    </td>
+                    <td class="p-2 text-center">
+                        <button onclick="deleteData('${item.id}')" class="text-red-400 hover:text-red-600 p-1 hover:bg-red-50 rounded">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderPodium() {
+            const container = document.getElementById('podium-container');
+            container.innerHTML = '';
+
+            if (state.data.length < 3) return; // Need at least 3 for podium
+
+            const top3 = state.data.slice(0, 3);
+            // We need to render them in order: 2nd place, 1st place, 3rd place
+            // indices in sorted array: 1, 0, 2
+            
+            const renderItem = (item, rank) => {
+                let colorClass, heightClass, iconName, iconColor;
+
+// Default icon is always medal now, but you can keep crown for 1st if you like!
+    iconName = "medal"; 
+
+    if (rank === 1) {
+        // GOLD
+        colorClass = "bg-gradient-to-t from-yellow-500 to-yellow-300 border-yellow-400";
+        heightClass = "h-48 md:h-64";
+        iconColor = "text-yellow-600"; // Rich Gold
+        bounce = "animate-bounce-slow";
+        // iconName = "crown"; // Uncomment this if you still want the crown for 1st
+    } else if (rank === 2) {
+        // SILVER
+        colorClass = "bg-gradient-to-t from-slate-400 to-slate-200 border-slate-300";
+        heightClass = "h-36 md:h-48";
+        iconColor = "text-slate-400"; // Clean Silver
+        bounce = "";
+    } else {
+        // BRONZE
+        colorClass = "bg-gradient-to-t from-orange-400 to-orange-200 border-orange-300";
+        heightClass = "h-28 md:h-40";
+        iconColor = "text-orange-600"; // Metallic Bronze
+        bounce = "";
+    }
+
+                return `
+                    <div class="flex flex-col justify-end items-center flex-1 mx-2 transition-all duration-500 max-w-[150px] md:max-w-[200px] ${rank === 1 ? '-mt-8 z-10' : ''}">
+                        <!-- Score Bubble -->
+                        <div class="mb-4 flex flex-col items-center">
+                            <i data-lucide="${iconName}" class="w-8 h-8 mb-2 ${iconColor} ${bounce}"></i>
+                            <span class="text-3xl font-black text-slate-800 tabular-nums tracking-tighter drop-shadow-sm">${item.value}</span>
+                            <span class="text-xs uppercase tracking-widest text-slate-500 font-bold mt-1">${state.metric}</span>
+                        </div>
+
+                        <!-- Bar -->
+                        <div class="w-full rounded-t-lg shadow-lg border-x-2 border-t-2 ${colorClass} ${heightClass} flex flex-col justify-end relative overflow-hidden group">
+                            <div class="absolute inset-0 bg-gradient-to-b from-white/30 to-transparent opacity-50"></div>
+                            <div class="absolute bottom-12 w-full text-center text-black/20 text-6xl font-black select-none">${rank}</div>
+                            <div class="bg-white/90 backdrop-blur-sm p-3 text-center border-t border-white/50 z-10">
+                                <h3 class="font-bold text-slate-800 text-lg md:text-xl">${item.label}</h3>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            };
+
+            // Inject 2nd place
+            container.innerHTML += `<div class="order-1 contents">${renderItem(top3[1], 2)}</div>`;
+            // Inject 1st place
+            container.innerHTML += `<div class="order-2 contents">${renderItem(top3[0], 1)}</div>`;
+            // Inject 3rd place
+            container.innerHTML += `<div class="order-3 contents">${renderItem(top3[2], 3)}</div>`;
+        }
+
+        function renderList() {
+            const container = document.getElementById('list-container');
+            container.innerHTML = '';
+            document.getElementById('total-count').textContent = `${state.data.length} Faculties`;
+
+            const maxVal = state.data.length > 0 ? state.data[0].value : 1;
+            
+            // If we have a podium (>= 3 items), skip the first 3 in the list. Otherwise show all.
+            const startIndex = state.data.length >= 3 ? 3 : 0;
+            const itemsToShow = state.data.slice(startIndex);
+
+            itemsToShow.forEach((item, index) => {
+                const rank = startIndex + index + 1;
+                const percent = (item.value / maxVal) * 100;
+
+                const html = `
+                    <div class="group flex items-center bg-white rounded-xl p-4 mb-3 shadow-sm hover:shadow-md transition-all border border-slate-100">
+                        <div class="w-12 flex-shrink-0 flex justify-center">
+                            <span class="text-xl font-bold text-slate-400 font-mono">#${rank}</span>
+                        </div>
+                        <div class="flex-1 px-4">
+                            <div class="flex justify-between items-end mb-1">
+                                <h4 class="font-bold text-slate-700 text-lg">${item.label}</h4>
+                                <span class="font-bold text-indigo-600 tabular-nums">${item.value}</span>
+                            </div>
+                            <div class="h-3 w-full bg-slate-100 rounded-full overflow-hidden">
+                                <div class="h-full bg-indigo-500 rounded-full relative" style="width: ${percent}%">
+                                    <div class="absolute inset-0 bg-white/20"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += html;
+            });
+        }
+
+        // Start
+        window.onload = init;
+
+    </script>
+</body>
+</html>
